@@ -1,0 +1,23 @@
+services:
+  web:
+    build: .
+    command: gunicorn -w 2 -b 0.0.0.0:9107 "api:app"
+    env_file:
+      - .env
+    volumes:
+      - visiontrafic_data:/app/data
+    ports:
+      - "127.0.0.1:9107:9107"
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: python run_yolo_cycle.py
+    env_file:
+      - .env
+    volumes:
+      - visiontrafic_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  visiontrafic_data:
