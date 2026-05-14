@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+.venv/
+
+# Runtime data
+data/
+
+# Ultralytics
+.ultralytics/
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+
+# SQLite
+*.sqlite3
+*.db
+
+# Logs
+*.log

@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>VisionTrafic — Démo</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+
+  <style>
+    /* ===== Landing additions (ne casse pas le CSS global) ===== */
+
+    /* IMPORTANT: le CSS global met .hero en grid (2 colonnes). Ici on neutralise. */
+    .hero { display:block; padding: 34px 0 18px; }
+
+    .heroTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .heroTag{ display:flex; gap:8px; margin:0; flex-wrap:wrap; }
+    .tag{
+      font-size:11px; font-weight:900;
+      letter-spacing:.35px; text-transform:uppercase;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(15,23,42,.12);
+      background: rgba(15,23,42,.04);
+      color: rgba(15,23,42,.70);
+    }
+    .tag.accent{
+      border-color: rgba(37,99,235,.22);
+      background: rgba(37,99,235,.08);
+      color: rgba(37,99,235,.95);
+    }
+
+    .heroTitleWrap{ flex: 1 1 520px; }
+    .heroTitleWrap h1{ margin:0 0 8px; }
+    .heroSub{
+      margin:0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 72ch;
+    }
+
+    /* ===== Two main cards row under title ===== */
+    .heroRow{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 12px;
+      align-items: stretch;
+      margin-top: 14px;
+    }
+
+    /* ===== Last detection viewer ===== */
+    .lastDetect{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display:flex;
+      flex-direction: column;
+      min-height: 320px;
+    }
+    .lastHead{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding: 12px 12px 10px;
+      border-bottom: 1px solid rgba(15,23,42,.06);
+      flex-wrap: wrap;
+    }
+    .lastTitle{
+      margin:0;
+      font-weight: 950;
+      letter-spacing: -0.2px;
+      font-size: 14px;
+      color: rgba(15,23,42,.86);
+    }
+    .lastMeta{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+      font-size: 12px; font-weight: 900;
+      color: rgba(71,85,105,.95);
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(15,23,42,.03);
+      white-space: nowrap;
+    }
+
+    /* LIVE dot */
+    .dot{
+      width:8px; height:8px; border-radius:99px;
+      background: rgba(16,185,129,.95);
+      box-shadow: 0 0 0 0 rgba(16,185,129,.35);
+      animation: pulse 1.7s infinite;
+    }
+    .dot.dead{
+      background: rgba(148,163,184,.95);
+      box-shadow:none;
+      animation: none;
+    }
+    @keyframes pulse{
+      0% { box-shadow: 0 0 0 0 rgba(16,185,129,.35); }
+      70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+      100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+    }
+
+    .lastStage{
+      position: relative;
+      background: rgba(15,23,42,.02);
+      flex: 1;
+      min-height: 230px;
+      padding: 10px 10px 12px;
+    }
+    /* Important: show the ENTIRE photo => object-fit: contain */
+    .lastStage img{
+      position:absolute;
+      left:10px; right:10px; top:10px; bottom:12px;
+      width: calc(100% - 20px);
+      height: calc(100% - 22px);
+      object-fit: contain;
+      object-position: center;
+      background: rgba(255,255,255,.55);
+      border-radius: 14px;
+      border: 1px solid rgba(15,23,42,.06);
+    }
+    .annOverlay{
+      opacity: 0;
+      transition: opacity 380ms ease;
+      pointer-events:none;
+    }
+    /* auto blink */
+    .lastStage.blink .annOverlay{
+      animation: annBlink 2.6s ease-in-out infinite;
+    }
+    @keyframes annBlink{
+      0% { opacity: 0; }
+      15% { opacity: 1; }
+      50% { opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    .lastFooter{
+      padding: 10px 12px 12px;
+      color: rgba(71,85,105,.92);
+      font-size: 12.5px;
+      line-height: 1.45;
+      border-top: 1px solid rgba(15,23,42,.06);
+    }
+
+    /* ===== KPI card ===== */
+    .kpiCard{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 320px;
+    }
+    .kpis{ padding: 0; background: transparent; border:0; box-shadow:none; }
+    .kpi{ padding: 10px 0; border-bottom:1px solid rgba(15,23,42,.06); }
+    .kpi:last-child{ border-bottom:none; }
+    .kpi .k{
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+      font-size:12px; color:var(--muted); font-weight:900; letter-spacing:.2px
+    }
+    .kpi .k small{ opacity:.75; font-weight: 900; }
+
+    /* Animated numbers */
+    .flip{
+      display:inline-block;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .3px;
+    }
+    /* Hide final values until we're ready to animate */
+    .counting .flip{ visibility:hidden; }
+    .counting.ready .flip{ visibility:visible; }
+
+    .bigCta{
+      margin-top: 2px;
+      display:flex;
+    }
+    .bigCta .btn{
+      width:100%;
+      justify-content:center;
+      font-size: 14px;
+      letter-spacing: .2px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      box-shadow: 0 10px 24px rgba(2,6,23,.12);
+    }
+    .bigCta .btn.primary{
+      background: linear-gradient(135deg, rgba(37,99,235,.26), rgba(14,165,233,.22));
+      border-color: rgba(37,99,235,.30);
+    }
+
+    /* ===== Source citation box (with bigger logo x2) ===== */
+    .sourceBox{
+      margin: 18px 0 0;
+      background: rgba(15,23,42,.03);
+      border:1px solid rgba(15,23,42,.08);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: rgba(71,85,105,.95);
+      line-height: 1.55;
+    }
+    .sourceHead{
+      display:flex; gap:12px; align-items:center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .sourceLogo{
+      width: 240px; /* x2 */
+      height: auto;
+      display:block;
+      border-radius: 10px;
+      border: 1px solid rgba(15,23,42,.08);
+      background: #fff;
+      padding: 8px 10px;
+    }
+    .sourceTitle{
+      margin:0;
+      font-weight: 950;
+      letter-spacing: -0.2px;
+      color: rgba(15,23,42,.86);
+    }
+    .sourceBox a{
+      font-weight: 950;
+      color: rgba(37,99,235,.95);
+      border-bottom: 1px dashed rgba(37,99,235,.35);
+    }
+    .sourceBox a:hover{ border-bottom-style:solid; }
+    .disclaimerLine{
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(15,23,42,.14);
+      color: rgba(71,85,105,.90);
+    }
+
+    /* Keep the rest of your existing sections intact (compare / viz / features) */
+    .section-title { margin: 70px 0 26px; text-align: center; }
+    .section-title h2 { font-size: 30px; letter-spacing: -0.8px; margin:0 0 8px; }
+    .section-title p { margin:0; color: var(--muted); font-size: 17px; }
+
+    .img-compare{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+      margin: 26px 0 54px;
+    }
+    .img-box{
+      position:relative;
+      border-radius: var(--radius);
+      overflow:hidden;
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+      background: var(--card);
+    }
+    .img-box img{
+      width:100%;
+      display:block;
+      height: 250px;
+      object-fit: cover;
+      object-position: center;
+      background: rgba(15,23,42,.03);
+    }
+    .img-label{
+      position:absolute; top:12px; left:12px;
+      background: rgba(255,255,255,.82);
+      color: rgba(15,23,42,.86);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 950;
+      border:1px solid rgba(15,23,42,.10);
+      backdrop-filter: blur(8px);
+    }
+
+    .vizRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin: 18px 0 0;
+    }
+    .vizCard{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+    }
+    .vizMedia{ padding: 14px; }
+    .vizMedia img{
+      width:100%;
+      display:block;
+      max-width: 860px;
+      margin: 0 auto;
+      height: 220px;
+      object-fit: contain;
+      background: rgba(15,23,42,.02);
+      border-radius: 14px;
+      border:1px solid rgba(15,23,42,.06);
+    }
+    .vizBody{ padding: 0 16px 16px; }
+    .vizTitle{
+      margin: 2px 0 6px;
+      font-size: 15px;
+      font-weight: 950;
+      letter-spacing:-0.2px;
+    }
+    .vizText{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+    }
+
+    .feature-grid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+      margin: 22px 0 38px;
+    }
+
+    @media (max-width: 980px){
+      .heroRow{ grid-template-columns: 1fr; }
+      .img-compare{ grid-template-columns:1fr; }
+      .vizRow{ grid-template-columns:1fr; }
+      .feature-grid{ grid-template-columns:1fr; }
+      .sourceLogo{ width: 280px; } /* still big on mobile */
+      .lastDetect, .kpiCard{ min-height: unset; }
+      .lastStage{ min-height: 240px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="wrap bar">
+    <a class="brand" href="/">VisionTrafic</a>
+    <nav class="nav">
+      <a class="active" href="/">Projet</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/technique">Technique</a>
+      <a href="/contact">Contact</a>
+      
+    </nav>
+  </div>
+</header>
+
+
+<main class="wrap">
+
+  <section class="hero">
+    <div class="heroTop">
+      <div class="heroTitleWrap">
+        <div class="heroTag">
+          <span class="tag accent">Data pipeline</span>
+          <span class="tag">Mise en prod</span>
+          <span class="tag">Vision (YOLO CPU)</span>
+          <span class="tag">Prototype perso</span>
+        </div>
+<p></p>
+        <h1>VisionTrafic — détection trafic LIVE en Haute-Loire</h1>
+        <p class="heroSub">
+          Dernière détection, compteurs “du jour”, et visualisations (carte + histogramme).
+        </p>
+      </div>
+    </div>
+
+    <!-- Row: last detection + KPIs side by side -->
+    <div class="heroRow">
+      <section class="lastDetect" aria-label="Dernière détection">
+        <div class="lastHead">
+          <h3 class="lastTitle">Dernière détection</h3>
+          <div class="lastMeta">
+            <span class="chip" title="Statut du pipeline"><span class="dot" id="liveDot"></span><span id="liveText">LIVE</span></span>
+            <span class="chip" title="Horodatage (local)" id="lastWhen">—</span>
+            <span class="chip" title="Caméra" id="lastCam">cam—</span>
+            <span class="chip" title="Véhicules détectés" id="lastCount">—</span>
+          </div>
+        </div>
+
+        <div class="lastStage blink" id="lastStage">
+          <img id="lastRaw" src="/static/pic/cam21_20260213T111808Z_raw.jpg" alt="Dernière image (raw)">
+          <img id="lastAnn" class="annOverlay" src="/static/pic/cam21_20260213T111808Z_annotated.jpg" alt="Dernière image (annotée)">
+        </div>
+
+        <div class="lastFooter" id="lastHint">
+          Surimpression automatique de l’annotation pour faire ressortir les cadres.
+        </div>
+      </section>
+
+      <aside class="kpiCard counting" id="kpiCard" aria-label="Indicateurs">
+        <div class="kpis">
+          <div class="kpi">
+            <div class="k">Webcams surveillées</div>
+            <div class="v"><span class="flip" id="kpiCams">—</span></div>
+          </div>
+
+          <div class="kpi">
+            <div class="k">Véhicules détectés aujourd’hui <small id="kpiDate"></small></div>
+            <div class="v"><span class="flip" id="kpiVehicles">—</span></div>
+          </div>
+
+          <div class="kpi">
+            <div class="k">Événements aujourd’hui <small id="kpiDate2"></small></div>
+            <div class="v"><span class="flip" id="kpiEvents">—</span></div>
+          </div>
+
+          <div class="kpi">
+            <div class="k">Mode</div>
+            <div class="v small" id="kpiMode">—</div>
+          </div>
+        </div>
+
+        <div class="bigCta">
+          <a class="btn primary" href="/dashboard">VOIR DASHBOARD LIVE</a>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Source + disclaimer (logo x2) -->
+    <div class="sourceBox">
+      <div class="sourceHead">
+        <img class="sourceLogo" src="/static/pic/logo-inforoute_43.jpg" alt="Logo Inforoute43">
+        <div>
+          <p class="sourceTitle">Référence & remerciements</p>
+          <div style="color:rgba(71,85,105,.95)">
+            Le service <strong>Inforoute43</strong> fournit une carte et des webcams publiques très utiles.
+            <a href="https://www.inforoute43.fr/" target="_blank" rel="noreferrer">Accéder au site officiel</a>.
+          </div>
+        </div>
+      </div>
+
+      <div class="disclaimerLine">
+        <strong>Disclaimer :</strong> ce projet est <strong>indépendant</strong>, <strong>non affilié</strong> et <strong>non sponsorisé</strong>.
+        Les marques/logos cités restent la propriété de leurs détenteurs. Mention à titre informatif et de remerciement.
+        <br/>
+        <strong>Démo technique :</strong> les images affichées sont volontairement <strong>dégradées</strong>
+        (redimensionnement + léger flou) ; objectif statistique, pas identification.
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== RESTE DE TA PAGE (inchangé) ====== -->
+
+  <div class="section-title">
+    <h2>Du pixel à l’événement</h2>
+    <p>Une seule image peut devenir une donnée : “quand / où / combien”.</p>
+  </div>
+
+  <div class="img-compare">
+    <div class="img-box">
+      <img src="/static/pic/cam21_20260213T111808Z_raw.jpg" alt="Snapshot webcam (dégradé)">
+      <span class="img-label">Snapshot</span>
+    </div>
+    <div class="img-box">
+      <img src="/static/pic/cam21_20260213T111808Z_annotated.jpg" alt="Snapshot annoté (détection YOLO)">
+      <span class="img-label">Détection YOLO (vehicle)</span>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <h2>Deux lectures : espace & temps</h2>
+    <p>Carte des détections + histogramme horaire : la vision sert la donnée.</p>
+  </div>
+
+  <section class="vizRow" aria-label="Carte et histogramme">
+    <article class="vizCard">
+      <div class="vizMedia">
+        <img src="/static/pic/carte.png" alt="Carte des détections (aperçu)">
+      </div>
+      <div class="vizBody">
+        <div class="vizTitle">Carte : points de mesure</div>
+        <p class="vizText">
+          Les marqueurs représentent les webcams. Un événement apparaît lorsqu’un passage de véhicule est détecté
+          (filtré pour limiter le bruit et les doublons).
+        </p>
+      </div>
+    </article>
+
+    <article class="vizCard">
+      <div class="vizMedia">
+        <img src="/static/pic/histo.png" alt="Histogramme horaire du trafic (aperçu)">
+      </div>
+      <div class="vizBody">
+        <div class="vizTitle">Histogramme : dynamique horaire</div>
+        <p class="vizText">
+          Les événements sont agrégés par créneau pour visualiser les pics et les périodes calmes,
+          et comparer l’activité d’une journée à l’autre.
+        </p>
+      </div>
+    </article>
+  </section>
+
+  <section class="feature-grid" style="margin-top:22px">
+    <article class="card">
+      <h3>Protection des données</h3>
+      <p>
+        Principe de minimisation : l’image sert à détecter, puis elle est dégradée pour l’affichage
+        (redimensionnement + léger flou). L’objectif est statistique, pas l’identification.
+      </p>
+    </article>
+    <article class="card">
+      <h3>Sobriété & robustesse</h3>
+      <p>
+        CPU-first, exécution uniquement si l’image a changé (hash), et pause automatique la nuit.
+        Moins de charge, plus de stabilité.
+      </p>
+    </article>
+    <article class="card">
+      <h3>Open Source & mise en prod</h3>
+      <p>
+        Python, SQLite, services systemd, reverse proxy (YunoHost). Architecture simple, lisible et maintenable.
+      </p>
+    </article>
+  </section>
+
+  <footer class="footer">
+    <span>© 2026 — Démo VisionTrafic — Alexandre Rogues</span>
+  </footer>
+
+</main>
+
+<script src="/static/js/common.js"></script>
+
+<script>
+  (function(){
+    // date labels
+    const fmt = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' });
+    const today = fmt.format(new Date());
+    const d1 = document.getElementById('kpiDate');
+    const d2 = document.getElementById('kpiDate2');
+    if (d1) d1.textContent = `(${today})`;
+    if (d2) d2.textContent = `(${today})`;
+
+    // live from kpiMode (common.js)
+    const mode = document.getElementById('kpiMode');
+    const dot  = document.getElementById('liveDot');
+    const txt  = document.getElementById('liveText');
+
+    function setLive(isLive){
+      if (!dot || !txt) return;
+      if (isLive){ dot.classList.remove('dead'); txt.textContent = 'LIVE'; }
+      else { dot.classList.add('dead'); txt.textContent = 'OFF'; }
+    }
+    function refreshLiveFromMode(){
+      const m = (mode && mode.textContent ? mode.textContent : '').toLowerCase();
+      const isDead = m.includes('pause') || m.includes('nuit') || m.includes('paused') || m.includes('night');
+      setLive(!isDead);
+    }
+    refreshLiveFromMode();
+    setInterval(refreshLiveFromMode, 900);
+
+    // helpers
+    async function jget(url){
+      const r = await fetch(url, {cache:"no-store"});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      return r.json();
+    }
+
+    // latest event
+    const lastRaw = document.getElementById('lastRaw');
+    const lastAnn = document.getElementById('lastAnn');
+    const lastWhen = document.getElementById('lastWhen');
+    const lastCam = document.getElementById('lastCam');
+    const lastCount = document.getElementById('lastCount');
+    const lastHint = document.getElementById('lastHint');
+
+    async function refreshLatest(){
+      try{
+        const res = await jget("/api/events/latest?limit=1");
+        const ev = res && res.events && res.events[0];
+        if(!ev){
+          if (lastHint) lastHint.textContent = "Aucun événement pour l’instant.";
+          return;
+        }
+        if (lastRaw && ev.raw_url) lastRaw.src = ev.raw_url;
+        if (lastAnn && ev.annotated_url) lastAnn.src = ev.annotated_url;
+        if (lastWhen) lastWhen.textContent = `🕒 ${ev.ts_local || "—"}`;
+        if (lastCam) lastCam.textContent = `cam${ev.cam_id || "—"}`;
+        if (lastCount) lastCount.textContent = `${ev.vehicles_count ?? "—"} véh.`;
+        if (lastHint) lastHint.textContent = "Surimpression automatique de l’annotation pour faire ressortir les cadres.";
+      }catch(e){
+        if (lastHint) lastHint.textContent = "Impossible de charger la dernière détection.";
+      }
+    }
+    refreshLatest();
+    setInterval(refreshLatest, 10000);
+
+    // Counter animation: avoid showing final values first
+    const card = document.getElementById('kpiCard');
+    const ids = ['kpiCams','kpiVehicles','kpiEvents'];
+
+    function parseNumber(el){
+      const t = (el.textContent || '').replace(/[^\d]/g,'');
+      return t ? parseInt(t, 10) : NaN;
+    }
+
+    function animateCount(el, target){
+      if (!el || !Number.isFinite(target)) return;
+
+      const duration = 2200; // slower
+      const t0 = performance.now();
+      const from = 0;
+
+      function ease(p){ return 1 - Math.pow(1 - p, 3); }
+
+      function tick(now){
+        const p = Math.min(1, (now - t0) / duration);
+        const v = Math.round(from + (target - from) * ease(p));
+        el.textContent = String(v);
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function runCountersOnce(){
+      if (!card) return;
+
+      // Wait until common.js has populated numbers (not "—")
+      const els = ids.map(id => document.getElementById(id));
+      const targets = els.map(el => parseNumber(el));
+      const ready = targets.every(n => Number.isFinite(n));
+
+      if (!ready){
+        setTimeout(runCountersOnce, 180);
+        return;
+      }
+
+      // Prevent flash of final values: hide, set 0, then show & animate
+      card.classList.add('counting');
+      els.forEach(el => { if (el) el.textContent = '0'; });
+
+      // small delay then reveal + animate
+      setTimeout(() => {
+        card.classList.add('ready');
+        els.forEach((el, i) => animateCount(el, targets[i]));
+      }, 250);
+
+      // stop hiding after a short while
+      setTimeout(() => { card.classList.remove('counting'); }, 450);
+    }
+
+    runCountersOnce();
+  })();
+</script>
+
+</body>
+</html>

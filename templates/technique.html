@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>VisionTrafic — Coulisses Techniques</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+
+    /* =========================
+       LAYOUT OPS 2x2
+    ========================== */
+    .ops-grid{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 900px){
+      .ops-grid{ grid-template-columns: 1fr; }
+    }
+
+    /* =========================
+       TYPO & SPACING (local)
+    ========================== */
+    .prose { line-height: 1.8; color: var(--muted); font-size: 16.5px; }
+    .lede  { font-size: 18px; color: var(--text); line-height: 1.7; margin: 12px 0 18px; max-width: 72ch; }
+    .kicker{
+      font-weight: 950;
+      letter-spacing: .10em;
+      color: rgba(37,99,235,.95);
+      text-transform: uppercase;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    /* Intro: plus d'air */
+    .hero{
+      padding-top: 28px;
+      padding-bottom: 8px;
+    }
+    .hero h1{
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+    .hero-actions{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top: 14px;
+    }
+
+    /* Stack pills: moins compact, + aéré */
+    .tech-stack { display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; }
+    .tech-pill{
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 950;
+      background: rgba(15,23,42,.03);
+      color: rgba(15,23,42,.78);
+    }
+    .tech-pill.accent{
+      background: rgba(37,99,235,.12);
+      color: rgba(37,99,235,.95);
+      border-color: rgba(37,99,235,.22);
+    }
+
+    /* Petit "details" propre */
+    details.stack{
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.65);
+      box-shadow: var(--shadow);
+      max-width: 980px;
+    }
+    details.stack summary{
+      cursor:pointer;
+      font-weight: 950;
+      color: rgba(15,23,42,.86);
+      list-style: none;
+    }
+    details.stack summary::-webkit-details-marker{ display:none; }
+    details.stack .hint{ margin-top: 8px; color: rgba(71,85,105,.92); font-size: 13px; }
+
+    /* Mono */
+    .mono{
+      background: rgba(15, 23, 42, 0.05);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.92em;
+      color: rgba(225,29,72,.95);
+      border: 1px solid rgba(15,23,42,.08);
+      white-space: nowrap;
+    }
+
+    /* Cards grid */
+    .grid-features{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
+      margin: 18px 0 8px;
+      align-items: stretch;
+    }
+
+    .softCallout{
+      background: linear-gradient(135deg, rgba(37,99,235,.08), rgba(14,165,233,.06));
+      border: 1px solid rgba(37,99,235,.16);
+    }
+
+    /* Steps */
+    .process-step{
+      border-left: 2px solid rgba(15,23,42,.12);
+      padding-left: 18px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .process-step::before{
+      content:"";
+      position:absolute;
+      left:-6px;
+      top:4px;
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background: rgba(37,99,235,.95);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    /* Badge */
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size: 12px;
+      font-weight: 950;
+      color: rgba(71,85,105,.95);
+      background: rgba(15,23,42,.03);
+      border: 1px solid rgba(15,23,42,.10);
+      padding: 6px 10px;
+      border-radius: 999px;
+      margin-top: 8px;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;
+      background: rgba(16,185,129,.95);
+      box-shadow: 0 0 0 0 rgba(16,185,129,.35);
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse{
+      0% { box-shadow: 0 0 0 0 rgba(16,185,129,.35); }
+      70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+      100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+    }
+
+    /* Reference */
+    .logo-box{
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--shadow);
+    }
+    .logo-box img{
+      height: 54px;
+      border-radius: 10px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: #fff;
+      padding: 6px 10px;
+    }
+    .logo-box a{
+      color: rgba(37,99,235,.95);
+      font-weight: 950;
+      border-bottom: 1px dashed rgba(37,99,235,.35);
+    }
+    .logo-box a:hover{ border-bottom-style: solid; }
+
+    .disclaimer{
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(15,23,42,.14);
+      font-size: 13.5px;
+      color: rgba(71,85,105,.92);
+      line-height: 1.65;
+    }
+
+    @media (max-width: 768px) {
+      .grid-features { grid-template-columns: 1fr; }
+      .logo-box { flex-direction: column; align-items: flex-start; }
+      .logo-box img { height: 50px; }
+    }
+
+    /* =========================
+       ARCH DIAGRAM (fixed)
+    ========================== */
+    .arch-figure{ margin: 16px 0 6px; }
+    .arch-card{
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(37,99,235,.06), rgba(14,165,233,.04));
+      box-shadow: var(--shadow);
+      padding: 14px;
+      overflow: hidden;
+    }
+    .arch-title{
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 10px; margin-bottom: 12px;
+    }
+    .arch-title strong{ font-weight: 950; color: rgba(15,23,42,.86); }
+    .arch-title span{ font-size: 13px; color: rgba(71,85,105,.92); }
+    .arch-svg{ width: 100%; height: auto; display:block; }
+    .arch-legend{
+      margin: 10px 0 0;
+      font-size: 13px;
+      color: rgba(71,85,105,.92);
+      line-height: 1.6;
+    }
+
+    /* =========================
+       TERMINAL
+    ========================== */
+    .terminal{
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,.12);
+      background:
+        radial-gradient(1200px 400px at 20% 0%, rgba(37,99,235,.10), transparent 60%),
+        linear-gradient(180deg, rgba(15,23,42,.96), rgba(2,6,23,.96));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin: 14px 0 18px;
+    }
+    .terminal-bar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(148,163,184,.18);
+      background: rgba(2,6,23,.55);
+    }
+    .term-dots{ display:flex; gap:7px; align-items:center; }
+    .term-dot{ width:10px; height:10px; border-radius:999px; background: rgba(148,163,184,.35); }
+    .term-dot.red{ background: rgba(239,68,68,.75); }
+    .term-dot.yel{ background: rgba(245,158,11,.75); }
+    .term-dot.grn{ background: rgba(34,197,94,.75); }
+
+    .terminal-title{
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(226,232,240,.86);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .term-actions{ display:flex; gap:8px; align-items:center; }
+    .term-btn{
+      font-size: 12px;
+      font-weight: 900;
+      color: rgba(226,232,240,.92);
+      border: 1px solid rgba(148,163,184,.25);
+      background: rgba(15,23,42,.35);
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .term-btn:hover{ background: rgba(15,23,42,.55); }
+
+    .terminal pre{
+      margin:0;
+      padding: 14px 14px 16px;
+      overflow:auto;
+      color: rgba(226,232,240,.94);
+      font-size: 13.5px;
+      line-height: 1.55;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      white-space: pre;
+    }
+    .terminal .prompt{ color: rgba(56,189,248,.95); font-weight: 900; }
+    .terminal .ok{ color: rgba(34,197,94,.95); font-weight: 900; }
+    .terminal .dim{ color: rgba(148,163,184,.85); }
+
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap bar">
+    <a class="brand" href="/">VisionTrafic</a>
+    <nav class="nav">
+      <a href="/">Projet</a>
+      <a href="/dashboard">Dashboard</a>
+      <a class="active" href="/technique">Technique</a>
+      <a href="/contact">Contact</a>
+      
+    </nav>
+  </div>
+</header>
+
+
+<main class="wrap">
+
+  <!-- INTRO (abrégée + aérée) -->
+  <section class="section hero">
+    <div class="kicker">Coulisses techniques</div>
+    <h1>Du signal dans le réel.</h1>
+
+    <p class="lede">
+      Collecte → détection → événements → dashboard.
+      Une approche <strong>sobre</strong>, pensée pour tourner en continu.
+    </p>
+
+    <div class="hero-actions">
+      <a class="btn primary" href="/contact">Me contacter</a>
+      <a class="btn" href="/dashboard">Voir le dashboard</a>
+    </div>
+
+    <details class="stack">
+      <summary>Voir la stack technique</summary>
+      <div class="tech-stack" aria-label="Stack">
+        <span class="tech-pill accent">Python 3.11</span>
+        <span class="tech-pill">YOLOv8n</span>
+        <span class="tech-pill">Torch (CPU)</span>
+        <span class="tech-pill">SQLite (WAL)</span>
+        <span class="tech-pill">Flask API</span>
+        <span class="tech-pill">Systemd</span>
+        <span class="tech-pill">YunoHost</span>
+        <span class="tech-pill">Vanilla JS</span>
+      </div>
+      <div class="hint">Cas d’usage : webcams routières → événements (où/quand/combien) → carte + stats.</div>
+    </details>
+  </section>
+
+  <!-- ARCHI -->
+  <section class="section">
+    <h2 class="h2">Architecture & flux de données</h2>
+    <p class="prose">
+      Pipeline événementiel : on collecte, on filtre, on stocke le minimum — puis on restitue vite.
+    </p>
+
+    <!-- ARCH DIAGRAM (API/Proxy descended + clean arrows) -->
+    <div class="arch-figure">
+      <div class="arch-card">
+        <div class="arch-title">
+          <strong>Architecture (vue d’ensemble)</strong>
+          <span>collecte → événements → API → dashboard</span>
+        </div>
+
+        <svg class="arch-svg" viewBox="0 0 980 270" role="img" aria-label="Schéma d’architecture VisionTrafic">
+          <defs>
+            <filter id="shadowA" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="rgba(15,23,42,0.14)"/>
+            </filter>
+            <marker id="arrowA" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+              <path d="M0,0 L12,6 L0,12 Z" fill="rgba(15,23,42,0.48)"/>
+            </marker>
+            <linearGradient id="fillA" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(255,255,255,0.98)"/>
+              <stop offset="1" stop-color="rgba(255,255,255,0.86)"/>
+            </linearGradient>
+            <linearGradient id="accentA" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(37,99,235,0.16)"/>
+              <stop offset="1" stop-color="rgba(14,165,233,0.10)"/>
+            </linearGradient>
+            <style>
+              .box{ fill:url(#fillA); stroke: rgba(15,23,42,0.14); stroke-width:1.4; }
+              .acc{ fill:url(#accentA); }
+              .t1{ font: 900 16px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; fill: rgba(15,23,42,0.86); }
+              .t2{ font: 500 12.5px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; fill: rgba(71,85,105,0.92); }
+              .ln{ stroke: rgba(15,23,42,0.36); stroke-width:2.2; fill:none; marker-end:url(#arrowA); }
+              .cap{ font: 800 11.5px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; fill: rgba(71,85,105,0.92); }
+            </style>
+          </defs>
+
+          <!-- Top row boxes -->
+          <!-- Webcams (30..220) -->
+          <g filter="url(#shadowA)">
+            <rect class="box" x="30" y="54" rx="18" ry="18" width="190" height="86"/>
+            <rect class="acc" x="30" y="54" rx="18" ry="18" width="190" height="86"/>
+            <text class="t1" x="125" y="88" text-anchor="middle">Webcams</text>
+            <text class="t2" x="125" y="112" text-anchor="middle">snapshots cadencés</text>
+          </g>
+
+          <!-- Worker (280..470) -->
+          <g filter="url(#shadowA)">
+            <rect class="box" x="280" y="54" rx="18" ry="18" width="190" height="86"/>
+            <text class="t1" x="375" y="88" text-anchor="middle">Worker</text>
+            <text class="t2" x="375" y="112" text-anchor="middle">hash → YOLO → filtres</text>
+          </g>
+
+          <!-- SQLite (530..720) -->
+          <g filter="url(#shadowA)">
+            <rect class="box" x="530" y="54" rx="18" ry="18" width="190" height="86"/>
+            <text class="t1" x="625" y="88" text-anchor="middle">SQLite</text>
+            <text class="t2" x="625" y="112" text-anchor="middle">événements + stats</text>
+          </g>
+
+          <!-- Dashboard (780..950) -->
+          <g filter="url(#shadowA)">
+            <rect class="box" x="780" y="54" rx="18" ry="18" width="170" height="86"/>
+            <text class="t1" x="865" y="88" text-anchor="middle">Dashboard</text>
+            <text class="t2" x="865" y="112" text-anchor="middle">carte + graphs</text>
+          </g>
+
+          <!-- Horizontal arrows with gap -->
+          <line class="ln" x1="234" y1="97" x2="266" y2="97"/>
+          <line class="ln" x1="484" y1="97" x2="516" y2="97"/>
+          <line class="ln" x1="734" y1="97" x2="766" y2="97"/>
+
+          <!-- Bottom row moved DOWN (more air) -->
+          <!-- API (under Worker) y=195 -->
+          <g filter="url(#shadowA)">
+            <rect class="box" x="280" y="195" rx="18" ry="18" width="190" height="52"/>
+            <text class="t1" x="375" y="227" text-anchor="middle" style="font-size:14.5px">Flask API</text>
+          </g>
+
+          <!-- Reverse proxy (under SQLite) y=195 -->
+          <g filter="url(#shadowA)">
+            <rect class="box" x="530" y="195" rx="18" ry="18" width="190" height="52"/>
+            <text class="t1" x="625" y="227" text-anchor="middle" style="font-size:14.5px">Reverse proxy</text>
+          </g>
+
+          <!-- Vertical arrows (now long + gapped) -->
+          <!-- Top bottom = 54+86 = 140. Bottom top = 195 -->
+          <!-- We'll draw from 152 to 183 (gap 12px both sides-ish) -->
+          <line class="ln" x1="375" y1="152" x2="375" y2="183"/>
+          <line class="ln" x1="625" y1="152" x2="625" y2="183"/>
+
+          <!-- Labels placed BESIDE arrows to avoid overlap -->
+          <text class="cap" x="355" y="170" text-anchor="end">JSON</text>
+          <text class="cap" x="645" y="170" text-anchor="start">HTTPS</text>
+        </svg>
+
+        <p class="arch-legend">
+          Séparation claire : <span class="mono">worker</span> (traitement) · <span class="mono">stockage</span> (événements) · <span class="mono">API</span> · <span class="mono">UI</span>.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid-features">
+      <article class="card">
+        <h3>1) Le Worker</h3>
+        <p class="muted">
+          Service Python autonome : collecte parallèle (<span class="mono">ThreadPoolExecutor</span>), analyse, filtrage anti-bruit.
+        </p>
+      </article>
+      <article class="card">
+        <h3>2) L’API</h3>
+        <p class="muted">
+          Endpoints JSON : lecture de la base + agrégations simples pour le front.
+        </p>
+      </article>
+      <article class="card">
+        <h3>3) Le Front</h3>
+        <p class="muted">
+          UI légère : carte + histogramme + compteurs, sans framework lourd.
+        </p>
+      </article>
+    </div>
+
+    <div class="card softCallout" style="margin-top:12px">
+      <h3 style="margin-top:0">Sobriété côté sources</h3>
+      <p class="muted" style="margin-bottom:0">
+        Collecte cadencée, non-streaming, et anti-retraitement si l’image est inchangée.
+      </p>
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section class="section">
+    <h2 class="h2">Pipeline : de l’image au signal</h2>
+    <p class="prose">
+      La photo est un support de calcul. Le résultat : un événement horodaté exploitable.
+    </p>
+
+    <div class="grid-features" style="align-items:start;">
+      <div>
+        <div class="process-step">
+          <strong>Anti-retraitement</strong>
+          <p class="muted">
+            Hash (<span class="mono">SHA256</span>) : si l’image est identique, pas d’inférence, pas d’écriture.
+          </p>
+        </div>
+
+        <div class="process-step">
+          <strong>YOLOv8 (CPU)</strong>
+          <p class="muted">
+            Modèle “nano” + classes véhicules → signal simple et stable.
+          </p>
+        </div>
+
+        <div class="process-step">
+          <strong>Filtre “parking” (IoU)</strong>
+          <p class="muted">
+            Évite de recompter un véhicule immobile.
+          </p>
+        </div>
+
+        <div class="process-step">
+          <strong>Stockage minimal</strong>
+          <p class="muted">
+            Images uniquement sur nouvel événement + version dégradée pour affichage.
+          </p>
+        </div>
+      </div>
+
+      <div class="card softCallout">
+        <h3 style="margin-top:0">Philosophie “Data”</h3>
+<p class="prose" style="margin:0">
+  <strong>Réduire le bruit, garder le signal.</strong><br/>
+  Je transforme un flux brut en <strong>événements utiles</strong> : qui / quand / où / combien.<br/>
+  Résultat : des statistiques fiables, sans stocker du volume inutile.
+</p>
+
+        <div class="badge" title="Déploiement conçu comme un service">
+          <span class="dot"></span>
+          <span>PROD-READY mindset</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPS -->
+  <section class="section">
+    <h2 class="h2">Ops & déploiement</h2>
+    <p class="prose">
+      Pensé pour tourner : isolation, redémarrage automatique, maintenance simple.
+    </p>
+
+    <!-- console -->
+    <div class="terminal" aria-label="Console live">
+      <div class="terminal-bar">
+        <div class="term-dots" aria-hidden="true">
+          <span class="term-dot red"></span>
+          <span class="term-dot yel"></span>
+          <span class="term-dot grn"></span>
+        </div>
+        <div class="terminal-title">console — état des services</div>
+        <div class="term-actions">
+          <button class="term-btn" type="button" data-copy="#termOps">Copier</button>
+        </div>
+      </div>
+
+      <pre id="termOps"><span class="prompt">$</span> systemctl status trafic-worker --no-pager
+<span class="ok">● trafic-worker.service</span> - VisionTrafic Worker (collecte + YOLO)
+<span class="dim">   Loaded:</span> loaded (/etc/systemd/system/trafic-worker.service; enabled)
+<span class="dim">   Active:</span> active (running) since Sat 2026-02-14 09:12:31 CET; 3h 08min ago
+
+<span class="prompt">$</span> journalctl -u trafic-worker -n 3 --no-pager
+<span class="dim">Feb 14 12:18:30</span> trafic-worker: cams=23 changed=7 infer=7 events=11 db=ok
+<span class="dim">Feb 14 12:20:10</span> trafic-worker: cams=23 changed=5 infer=5 events=8  db=ok
+<span class="dim">Feb 14 12:21:50</span> trafic-worker: cams=23 changed=6 infer=6 events=9  db=ok</pre>
+    </div>
+
+    <div class="ops-grid">
+      <div class="card">
+        <h4 style="margin-top:0">Infrastructure</h4>
+        <ul class="miniList">
+          <li><strong>VPS Debian 12</strong></li>
+          <li>Accès admin via <span class="mono">SSH</span></li>
+          <li>Surcouche <strong>YunoHost</strong> (SSL, proxy)</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4 style="margin-top:0">Isolation</h4>
+        <ul class="miniList">
+          <li>User dédié : <span class="mono">trafic</span></li>
+          <li>Code <span class="mono">/opt</span> · Données <span class="mono">/var/lib</span></li>
+          <li><span class="mono">venv</span> Python</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4 style="margin-top:0">Réseau</h4>
+        <ul class="miniList">
+          <li>HTTPS via reverse proxy</li>
+          <li>API locale non exposée direct</li>
+          <li>Ports minimaux</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h4 style="margin-top:0">Exploitation</h4>
+        <ul class="miniList">
+          <li><span class="mono">systemd</span> + auto-restart</li>
+          <li>Purge planifiée</li>
+          <li>Logs : <span class="mono">journalctl</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- REFERENCE BOX -->
+  <section class="section">
+    <div class="logo-box">
+      <img src="/static/pic/logo-inforoute_43.jpg" alt="Inforoute43 (référence)">
+      <div class="prose" style="font-size: 14.5px; margin:0">
+        Source d’inspiration et d’accès public aux webcams : <strong>Inforoute43</strong>.
+        <br/>
+        <a href="https://www.inforoute43.fr/" target="_blank" rel="noreferrer">Consulter le site officiel →</a>
+
+        <div class="disclaimer">
+          <strong>Disclaimer :</strong> projet personnel, indépendant, non affilié. Collecte non-streaming, cadencée, anti-retraitement.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="card softCallout">
+      <h3 style="margin-top:0">On en parle ?</h3>
+      <p class="muted" style="margin-bottom:10px">
+        Besoin d’un pipeline, d’une brique vision, ou d’un dashboard ? Je peux aider à cadrer et livrer.
+      </p>
+      <a class="btn primary" href="/contact">Accéder à la page contact</a>
+    </div>
+  </section>
+
+  <footer class="footer" style="padding-top:40px; border-top: 1px solid var(--border);">
+    <a class="btn primary" href="/dashboard">Voir le dashboard en action</a>
+    <a class="btn" href="/">Retour au projet</a>
+  </footer>
+
+</main>
+
+<script>
+  // Copy button for terminal block
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-copy]');
+    if(!btn) return;
+    const sel = btn.getAttribute('data-copy');
+    const el = document.querySelector(sel);
+    if(!el) return;
+
+    const text = (el.innerText || el.textContent || '').trim();
+    try{
+      await navigator.clipboard.writeText(text);
+      const old = btn.textContent;
+      btn.textContent = "Copié ✓";
+      setTimeout(()=> btn.textContent = old, 900);
+    }catch(err){
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      const old = btn.textContent;
+      btn.textContent = "Copié ✓";
+      setTimeout(()=> btn.textContent = old, 900);
+    }
+  });
+</script>
+
+</body>
+</html>

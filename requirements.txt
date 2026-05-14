@@ -1,0 +1,9 @@
+Flask
+gunicorn
+requests
+opencv-python
+ultralytics
+matplotlib
+numpy
+Pillow
+PyYAML

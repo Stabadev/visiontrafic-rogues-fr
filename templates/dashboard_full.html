@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>VisionTrafic — Dashboard</title>
+
+  <!-- CSS vitrine -->
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <!-- CSS dashboard scoped -->
+  <link rel="stylesheet" href="/static/css/dashboard_full.css"/>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Mobile guard -->
+  <style>
+    /* Desktop-only wrapper + Mobile message */
+    .mobileOnly{
+      display:none;
+      min-height: calc(100vh - 86px);
+      align-items: center;
+      justify-content: center;
+      padding: 34px 18px;
+      text-align: center;
+    }
+    .mobileOnly .box{
+      max-width: 560px;
+      width: 100%;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 16px;
+      box-shadow: var(--shadow);
+    }
+    .mobileOnly h1{
+      margin: 0 0 10px;
+      font-size: 24px;
+      line-height: 1.15;
+    }
+    .mobileOnly p{
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 15.5px;
+    }
+    .mobileOnly .tips{
+      margin: 10px 0 16px;
+      font-size: 13.5px;
+      color: rgba(71,85,105,.92);
+      line-height: 1.6;
+    }
+    .desktopOnly{ display:block; }
+
+    @media (max-width: 900px){
+      .desktopOnly{ display:none !important; }
+      .mobileOnly{ display:flex; }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Header homogène vitrine -->
+<header class="topbar">
+  <div class="wrap bar">
+    <a class="brand" href="/">VisionTrafic</a>
+    <nav class="nav">
+      <a href="/">Projet</a>
+      <a class="active" href="/dashboard">Dashboard</a>
+      <a href="/technique">Technique</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<!-- Mobile message -->
+<section class="mobileOnly" aria-label="Dashboard indisponible sur mobile">
+  <div class="box">
+    <h1>Dashboard : version PC uniquement</h1>
+    <p>
+      Cette page a été conçue pour un écran large (carte, histogramme, grilles d’images).
+      Sur smartphone, l’affichage n’est pas confortable.
+    </p>
+    <div class="tips">
+      Astuce : ouvre le lien depuis un ordinateur, ou une tablette en mode paysage.
+    </div>
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <a class="btn primary" href="/">Retour vitrine</a>
+      <a class="btn" href="/technique">Voir la page technique</a>
+    </div>
+  </div>
+</section>
+
+<!-- Desktop-only: Dashboard (scopé) -->
+<div class="desktopOnly">
+
+  <div class="dbg">
+
+    <!-- bandeau haut (compteur run_yolo_cycle) -->
+    <div class="dashTop">
+      <div class="dashTopLeft">
+        <div class="nextBox" id="nextBox">
+          <div class="nextLabel">Prochaine analyse</div>
+          <div class="nextValue"><span id="nextCountdown">—</span></div>
+          <div class="nextSub" id="nextSub">Basé sur le cycle du worker (run_yolo_cycle).</div>
+        </div>
+
+        <div class="statusBox">
+          <div class="statusRow">
+            <span class="statusPill" id="modePill"><span class="dot" id="modeDot"></span><span id="modeLbl">—</span></span>
+            <span class="statusPill">Jour: <span class="selInfo" id="dayLbl">—</span></span>
+            <span class="statusPill">Cam: <span class="selInfo" id="filterCam">ALL</span></span>
+            <span class="statusPill">API: <span class="selInfo" id="apiOk">?</span></span>
+          </div>
+          <div class="statusHint muted" id="statusHint">—</div>
+        </div>
+      </div>
+
+      <div class="dashTopRight">
+        <a class="btn primary" href="/">Retour vitrine</a>
+      </div>
+    </div>
+
+    <div class="dbgWrap">
+      <div class="left">
+
+        <div class="topSplit">
+          <div class="card podiumWrap" style="margin:0;">
+            <div class="podiumTitle">
+              <div>
+                <h3 style="margin:0;">Podium (global journée)</h3>
+                <div class="muted">Top 3 cams sur la fenêtre → fin</div>
+              </div>
+              <div class="muted" id="podiumDayLbl"></div>
+            </div>
+
+            <div id="podiumGrid" class="podiumGrid"></div>
+
+            <div class="muted" style="font-size:12px;">
+              *Le podium ne dépend pas du filtre caméra.
+            </div>
+          </div>
+
+          <div id="mapWrap">
+            <div id="map"></div>
+          </div>
+        </div>
+
+        <div class="below">
+          <div class="card" style="margin-bottom:10px;">
+            <div class="row" style="align-items:flex-start;">
+              <div style="min-width: 280px;">
+                <h3 style="margin:0 0 4px;">Histogramme véhicules (10 min)</h3>
+                <div class="muted">
+                  Fenêtre locale: <span id="windowLbl">06:00→…</span>
+                </div>
+                <div class="muted" style="margin-top:4px;">
+                  Caméra: <span id="camTitleLbl">Toutes caméras</span>
+                </div>
+              </div>
+
+              <div class="controls">
+                <button id="resetAll">Toutes caméras</button>
+
+                <select id="camSelect" title="Choisir une caméra">
+                  <option value="">ALL</option>
+                </select>
+
+                <input type="date" id="dayPicker" />
+                <button id="todayBtn">Aujourd’hui</button>
+
+                <button id="refreshStats">Refresh</button>
+              </div>
+            </div>
+
+            <div id="histWrap">
+              <canvas id="hist" width="800" height="220"></canvas>
+              <div id="histTip"></div>
+            </div>
+
+            <div class="row muted" style="margin-top:6px;">
+              <div>Total events: <span id="totEvents">0</span></div>
+              <div>Total véhicules: <span id="totVeh">0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <h3 style="margin:0 0 6px;">Images (50 max)</h3>
+          <div class="muted" id="imgModeLbl">—</div>
+          <div id="latestGrid" class="grid" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ===== Mobile guard: don't run dashboard JS on small screens =====
+  const IS_MOBILE = window.matchMedia && window.matchMedia("(max-width: 900px)").matches;
+  if (IS_MOBILE) {
+    // Nothing: dashboard is hidden by CSS; skip Leaflet + polling
+    console.log("Dashboard disabled on mobile.");
+  } else {
+
+  /* ---------------- Map ---------------- */
+  let map = L.map('map').setView([45.05, 3.85], 9);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+
+  let deptLayer = null;
+
+  let camsById = {};
+  let markersById = {};
+  let lastSinceId = 0;
+
+  let latestEvents = [];
+  let selectedCamId = null;
+  let selectedDay = null; // YYYY-MM-DD local
+
+  let selectedMarker = null;
+  const markerStyleDefault = { radius: 6, weight: 2, opacity: 1, fillOpacity: 0.9 };
+  const markerStyleSelected = { radius: 10, weight: 3, opacity: 1, fillOpacity: 1 };
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  }
+
+  function fmtCamTitle(cam_id){
+    if (!cam_id) return "Toutes caméras";
+    const c = camsById[cam_id];
+    if (!c) return `cam${cam_id}`;
+    return `cam${cam_id} — ${c.title}`;
+  }
+
+  function setMarkerSelected(cam_id){
+    if (selectedMarker) selectedMarker.setStyle(markerStyleDefault);
+    selectedMarker = cam_id ? markersById[cam_id] : null;
+    if (selectedMarker) selectedMarker.setStyle(markerStyleSelected);
+  }
+
+  function pulseCam(cam_id){
+    const m = markersById[cam_id];
+    if(!m) return;
+    const c = camsById[cam_id];
+    m.bindPopup(`<div><span class="pulse"></span> <b>cam${escapeHtml(cam_id)}</b><br>${escapeHtml(c ? c.title : '')}</div>`).openPopup();
+    setTimeout(()=> m.closePopup(), 800);
+  }
+
+  function setSelectedCam(cam_id){
+    selectedCamId = cam_id || null;
+    document.getElementById('filterCam').textContent = selectedCamId ? `cam${selectedCamId}` : 'ALL';
+    document.getElementById('camTitleLbl').textContent = fmtCamTitle(selectedCamId);
+    setMarkerSelected(selectedCamId);
+
+    document.getElementById('camSelect').value = selectedCamId ? selectedCamId : "";
+
+    document.getElementById('imgModeLbl').textContent =
+      selectedCamId
+        ? `Mode images: 50 dernières (cam${selectedCamId}) • Jour: ${selectedDay}`
+        : `Mode images: 50 dernières (toutes caméras) • Jour: ${selectedDay}`;
+
+    refreshStats();
+    loadLatestImages();
+  }
+
+  function setSelectedDay(dayStr){
+    selectedDay = dayStr;
+    document.getElementById('dayLbl').textContent = selectedDay;
+    document.getElementById('podiumDayLbl').textContent = selectedDay;
+
+    document.getElementById('imgModeLbl').textContent =
+      selectedCamId
+        ? `Mode images: 50 dernières (cam${selectedCamId}) • Jour: ${selectedDay}`
+        : `Mode images: 50 dernières (toutes caméras) • Jour: ${selectedDay}`;
+
+    refreshStats();
+    loadLatestImages();
+  }
+
+  function getTodayLocalISO(){
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function isoMinusDays(iso, days){
+    const d = new Date(iso + "T00:00:00");
+    d.setDate(d.getDate() - days);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  async function apiHealth(){
+    try {
+      const r = await fetch('/api/health');
+      const j = await r.json();
+      document.getElementById('apiOk').textContent = j.ok ? 'OK' : 'KO';
+    } catch {
+      document.getElementById('apiOk').textContent = 'KO';
+    }
+  }
+
+  /* ---- countdown based on /api/status updated_at_utc + cycle_seconds ---- */
+  let statusCache = null;
+  let countdownTimer = null;
+
+  function fmtDur(ms){
+    ms = Math.max(0, ms);
+    const s = Math.floor(ms/1000);
+    const m = Math.floor(s/60);
+    const r = s % 60;
+    if (m <= 0) return `${r}s`;
+    return `${m}m ${String(r).padStart(2,'0')}s`;
+  }
+
+  function startCountdownLoop(){
+    const el = document.getElementById('nextCountdown');
+    const sub = document.getElementById('nextSub');
+    const pill = document.getElementById('modePill');
+    const dot = document.getElementById('modeDot');
+    const modeLbl = document.getElementById('modeLbl');
+    const hint = document.getElementById('statusHint');
+    const nextBox = document.getElementById('nextBox');
+
+    if(countdownTimer) clearInterval(countdownTimer);
+
+    countdownTimer = setInterval(()=>{
+      if(!statusCache || !statusCache.ok){
+        if(el) el.textContent = "—";
+        if(sub) sub.textContent = "Statut indisponible.";
+        if(hint) hint.textContent = "—";
+        return;
+      }
+
+      const paused = statusCache.paused === true;
+      const cycleSec = Number(statusCache.cycle_seconds || 100);
+      const updatedUtc = statusCache.updated_at_utc ? Date.parse(statusCache.updated_at_utc) : NaN;
+
+      if(paused){
+        const nextWakeUtc = statusCache.next_wake_utc ? Date.parse(statusCache.next_wake_utc) : NaN;
+        if(modeLbl) modeLbl.textContent = "PAUSE NUIT";
+        if(pill) pill.classList.add('pillNight');
+        if(dot) dot.classList.add('dead');
+
+        if(Number.isFinite(nextWakeUtc)){
+          const ms = nextWakeUtc - Date.now();
+          if(el) el.textContent = fmtDur(ms);
+          if(sub) sub.textContent = "Reprise prévue (heure locale) : " + (statusCache.next_wake_local || "—");
+          if(hint) hint.textContent = "Le worker est en pause (fenêtre jour/nuit).";
+        } else {
+          if(el) el.textContent = "—";
+          if(sub) sub.textContent = "Reprise prévue : —";
+          if(hint) hint.textContent = "Le worker est en pause (fenêtre jour/nuit).";
+        }
+
+        if(nextBox) nextBox.classList.remove('urgent');
+        return;
+      }
+
+      if(modeLbl) modeLbl.textContent = "ACTIF";
+      if(pill) pill.classList.remove('pillNight');
+      if(dot) dot.classList.remove('dead');
+
+      if(!Number.isFinite(updatedUtc)){
+        if(el) el.textContent = "—";
+        if(sub) sub.textContent = "Horodatage du statut manquant.";
+        if(hint) hint.textContent = "Worker actif.";
+        return;
+      }
+
+      const next = updatedUtc + cycleSec*1000;
+      const msLeft = next - Date.now();
+
+      if(el) el.textContent = fmtDur(msLeft);
+      if(sub) sub.textContent = `Cycle: ${cycleSec}s • Dernière mise à jour statut: ${statusCache.updated_at_utc || "—"} (UTC)`;
+      if(hint) hint.textContent = "Le compteur suit le rythme du worker (pas le polling du navigateur).";
+
+      if(nextBox){
+        if(msLeft <= 6000) nextBox.classList.add('urgent');
+        else nextBox.classList.remove('urgent');
+      }
+    }, 250);
+  }
+
+  async function refreshStatus(){
+    try {
+      const r = await fetch('/api/status', {cache:'no-store'});
+      statusCache = await r.json();
+    } catch {
+      statusCache = { ok:false };
+    }
+  }
+
+  async function loadCams() {
+    const r = await fetch('/api/cams');
+    const cams = await r.json();
+
+    const sel = document.getElementById('camSelect');
+    sel.innerHTML = `<option value="">ALL</option>`;
+
+    cams.forEach(c => {
+      camsById[c.cam_id] = c;
+
+      const opt = document.createElement('option');
+      opt.value = c.cam_id;
+      opt.textContent = `cam${c.cam_id} — ${c.title}`;
+      sel.appendChild(opt);
+
+      const m = L.circleMarker([c.lat, c.lon], markerStyleDefault).addTo(map);
+      m.bindPopup(`<b>cam${escapeHtml(c.cam_id)}</b><br>${escapeHtml(c.title)}`);
+      m.on('click', (e) => {
+        setSelectedCam(c.cam_id);
+        pulseCam(c.cam_id);
+        L.DomEvent.stopPropagation(e);
+      });
+      markersById[c.cam_id] = m;
+    });
+  }
+
+  function renderLatestGrid(){
+    const grid = document.getElementById('latestGrid');
+    grid.innerHTML = '';
+
+    const items = latestEvents.slice(0, 50);
+
+    if (!items.length){
+      grid.innerHTML = `<div class="noVehicle">Aucun véhicule détecté (filtre actuel).</div>`;
+      return;
+    }
+
+    for (const ev of items) {
+      const c = camsById[ev.cam_id];
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.innerHTML = `
+        <div class="top">
+          <div><b>cam${escapeHtml(ev.cam_id)}</b></div>
+          <div class="badge">veh=${ev.vehicles_count}</div>
+        </div>
+        <div class="muted">${escapeHtml(c ? c.title : '')}</div>
+        <div class="muted">${escapeHtml(ev.ts_local || ev.ts_utc)} • id=${ev.id}</div>
+        <img src="${ev.annotated_url}?t=${Date.now()}" alt="annotated"/>
+      `;
+      grid.appendChild(tile);
+    }
+  }
+
+  async function loadLatestImages(){
+    const camParam = selectedCamId ? `&cam_id=${encodeURIComponent(selectedCamId)}` : '';
+    const dateParam = selectedDay ? `&date=${encodeURIComponent(selectedDay)}` : '';
+    const r = await fetch(`/api/events/latest?limit=50${camParam}${dateParam}`);
+    const j = await r.json();
+    latestEvents = (j.events || []);
+    renderLatestGrid();
+  }
+
+  async function initSinceId(){
+    const r = await fetch('/api/events/latest?limit=1');
+    const j = await r.json();
+    const ev = (j.events || [])[0];
+    lastSinceId = ev ? ev.id : 0;
+  }
+
+  function mergeNewEventsForSession(newEvents){
+    for (const ev of newEvents) {
+      pulseCam(ev.cam_id);
+    }
+    loadLatestImages();
+  }
+
+  async function pollEvents(){
+    try {
+      const r = await fetch(`/api/events?since_id=${lastSinceId}&limit=200`);
+      const data = await r.json();
+
+      if (data.events && data.events.length) {
+        lastSinceId = Math.max(lastSinceId, data.max_id || lastSinceId);
+        mergeNewEventsForSession(data.events);
+        await refreshStats();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setTimeout(pollEvents, 1500);
+    }
+  }
+
+  /* -------- Histogram + stats -------- */
+  function addMinutesHHMM(hhmm, mins){
+    const [H,M] = hhmm.split(':').map(Number);
+    const total = H*60 + M + mins;
+    const HH = String(Math.floor(total/60)).padStart(2,'0');
+    const MM = String(total%60).padStart(2,'0');
+    return `${HH}:${MM}`;
+  }
+  function parseHHMM(hhmm){
+    const [H,M] = hhmm.split(':').map(Number);
+    return H*60 + M;
+  }
+  function makeHatchPattern(ctx){
+    const p = document.createElement('canvas');
+    p.width = 10; p.height = 10;
+    const pctx = p.getContext('2d');
+    pctx.clearRect(0,0,10,10);
+    pctx.strokeStyle = 'rgba(43,179,177,0.65)';
+    pctx.lineWidth = 2;
+    pctx.beginPath();
+    pctx.moveTo(-2, 10);
+    pctx.lineTo(10, -2);
+    pctx.stroke();
+    return ctx.createPattern(p, 'repeat');
+  }
+
+  function drawHistogram(buckets, bucketMinutes, windowEndHHMM){
+    const canvas = document.getElementById('hist');
+    const tip = document.getElementById('histTip');
+    const wrap = document.getElementById('histWrap');
+    const ctx = canvas.getContext('2d');
+
+    const cssW = canvas.clientWidth || 800;
+    const cssH = canvas.clientHeight || 220;
+
+    canvas.width = Math.floor(cssW * devicePixelRatio);
+    canvas.height = Math.floor(cssH * devicePixelRatio);
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+
+    ctx.clearRect(0,0,cssW,cssH);
+
+    const padding = 12;
+    const labelArea = 24;
+    const topPad = 10;
+    const w = cssW - padding*2;
+    const h = cssH - padding - topPad - labelArea;
+
+    ctx.fillStyle = '#fafafa';
+    ctx.fillRect(padding, topPad, w, h);
+
+    if (!buckets || !buckets.length){
+      ctx.fillStyle = '#666';
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.fillText('Pas de données sur la fenêtre', padding+8, topPad+20);
+      canvas.onmousemove = null;
+      canvas.onmouseleave = null;
+      tip.style.display = 'none';
+      return;
+    }
+
+    const values = buckets.map(b => b.count);
+    const maxV = Math.max(1, ...values);
+    const barCount = buckets.length;
+    const barW = w / barCount;
+
+    let lastInProgress = false;
+    if (windowEndHHMM) {
+      const lastStart = buckets[buckets.length-1].start_local;
+      const lastEnd = addMinutesHHMM(lastStart, bucketMinutes);
+      lastInProgress = parseHHMM(windowEndHHMM) < parseHHMM(lastEnd);
+    }
+
+    const ticks = 5;
+    const rawStep = maxV / (ticks - 1);
+    function niceStep(x){
+      const pow = Math.pow(10, Math.floor(Math.log10(x)));
+      const n = x / pow;
+      let m = 1;
+      if (n <= 1) m = 1;
+      else if (n <= 2) m = 2;
+      else if (n <= 5) m = 5;
+      else m = 10;
+      return m * pow;
+    }
+    const step = niceStep(rawStep);
+    const topTick = Math.max(step, Math.ceil(maxV / step) * step);
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.font = '11px system-ui, sans-serif';
+
+    for (let v = 0; v <= topTick; v += step){
+      const y = topPad + h - (v / topTick) * (h - 8);
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(padding + w, y);
+      ctx.stroke();
+      ctx.fillText(String(v), padding + 2, y - 2);
+    }
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(0,0,0,0.38)';
+    ctx.font = '11px system-ui, sans-serif';
+
+    for (let i=0; i<barCount; i++){
+      const start = buckets[i].start_local;
+      if (start.endsWith(':00')) {
+        const x = padding + i * barW;
+        ctx.beginPath();
+        ctx.moveTo(x, topPad);
+        ctx.lineTo(x, topPad + h);
+        ctx.stroke();
+        const hour = parseInt(start.slice(0,2), 10);
+        if (hour % 2 === 0) ctx.fillText(start, x + 2, topPad + h + 18);
+      }
+    }
+
+    ctx.strokeStyle = '#e6e6e6';
+    ctx.beginPath();
+    ctx.moveTo(padding, topPad + h);
+    ctx.lineTo(padding + w, topPad + h);
+    ctx.stroke();
+
+    const hatch = makeHatchPattern(ctx);
+
+    for (let i=0; i<barCount; i++){
+      const v = values[i];
+      const bh = (v / topTick) * (h - 8);
+      const x = padding + i * barW;
+      const y = topPad + h - bh;
+      const bw = Math.max(1, barW - 1);
+
+      const isLast = (i === barCount - 1);
+      if (isLast && lastInProgress) {
+        ctx.fillStyle = hatch;
+        ctx.fillRect(x, y, bw, bh);
+
+        ctx.strokeStyle = 'rgba(43,179,177,0.85)';
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(x + 0.5, y + 0.5, bw - 1, bh - 1);
+        ctx.setLineDash([]);
+      } else {
+        ctx.fillStyle = '#2bb3b1';
+        ctx.fillRect(x, y, bw, bh);
+      }
+    }
+
+    ctx.fillStyle = '#666';
+    ctx.font = '12px system-ui, sans-serif';
+    const first = buckets[0].start_local;
+    const last = buckets[buckets.length-1].start_local;
+    ctx.fillText(first, padding, topPad + h + 18);
+    ctx.fillText(last, padding + w - 46, topPad + h + 18);
+
+    canvas.onmousemove = (ev) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = ev.clientX - rect.left;
+      const y = ev.clientY - rect.top;
+
+      const relX = x - padding;
+      const relY = y - topPad;
+      if (relX < 0 || relX > w || relY < 0 || relY > (h + 24)) {
+        tip.style.display = 'none';
+        return;
+      }
+
+      const idx = Math.floor(relX / barW);
+      if (idx < 0 || idx >= buckets.length){
+        tip.style.display = 'none';
+        return;
+      }
+
+      const b = buckets[idx];
+      const start = b.start_local;
+      const end = addMinutesHHMM(start, bucketMinutes);
+      const count = b.count;
+
+      let extra = '';
+      if (idx === buckets.length - 1 && lastInProgress && windowEndHHMM) {
+        extra = `<br/><span style="opacity:.85">Période en cours (jusqu’à ${windowEndHHMM})</span>`;
+      }
+
+      tip.innerHTML = `<b>${start} → ${end}</b><br/>Véhicules: <b>${count}</b>${extra}`;
+      tip.style.display = 'block';
+
+      const wrapRect = wrap.getBoundingClientRect();
+      tip.style.left = (ev.clientX - wrapRect.left) + 'px';
+      tip.style.top = (ev.clientY - wrapRect.top) + 'px';
+    };
+
+    canvas.onmouseleave = () => tip.style.display = 'none';
+  }
+
+  async function refreshStats(){
+    const camParam = selectedCamId ? `&cam_id=${encodeURIComponent(selectedCamId)}` : '';
+    const dateParam = selectedDay ? `&date=${encodeURIComponent(selectedDay)}` : '';
+    const r = await fetch(`/api/stats?bucket=10m${camParam}${dateParam}`);
+    const s = await r.json();
+
+    document.getElementById('totEvents').textContent = String(s.totals?.events ?? 0);
+    document.getElementById('totVeh').textContent = String(s.totals?.vehicles ?? 0);
+
+    const win = (s.window_local?.start && s.window_local?.end)
+      ? `${s.window_local.start}→${s.window_local.end}`
+      : '06:00→…';
+    document.getElementById('windowLbl').textContent = win;
+
+    renderPodium(s.podium || []);
+    drawHistogram(s.buckets || [], s.bucket_minutes || 10, s.window_local?.end || null);
+  }
+
+  function renderPodium(podiumArr){
+    const grid = document.getElementById('podiumGrid');
+    grid.innerHTML = '';
+
+    const medals = [
+      { rank: 1, medal: "🥇", cls: "hGold" },
+      { rank: 2, medal: "🥈", cls: "hSilver" },
+      { rank: 3, medal: "🥉", cls: "hBronze" },
+    ];
+
+    const items = [
+      podiumArr?.[1] || null,
+      podiumArr?.[0] || null,
+      podiumArr?.[2] || null,
+    ];
+    const order = [1, 0, 2];
+
+    for (let i=0; i<3; i++){
+      const it = items[i];
+      const meta = medals[order[i]];
+
+      const col = document.createElement('div');
+      col.className = `podiumCol ${meta.cls}`;
+
+      if (!it){
+        col.innerHTML = `
+          <div class="podiumMedal">${meta.medal}</div>
+          <div class="podiumRank">${meta.rank}</div>
+          <div class="muted">—</div>
+        `;
+        grid.appendChild(col);
+        continue;
+      }
+
+      const cam = camsById[it.cam_id];
+      col.innerHTML = `
+        <div class="podiumMedal">${meta.medal}</div>
+        <div class="podiumRank">${meta.rank}</div>
+        <div class="podiumCam">cam${escapeHtml(it.cam_id)}</div>
+        <div class="podiumSubtitle">${escapeHtml(cam ? cam.title : '')}</div>
+        <div class="podiumBase">
+          <div class="muted">véhicules</div>
+          <div class="podiumVeh">${it.vehicles}</div>
+        </div>
+      `;
+      grid.appendChild(col);
+    }
+  }
+
+  document.getElementById('refreshStats').addEventListener('click', refreshStats);
+  document.getElementById('resetAll').addEventListener('click', () => setSelectedCam(null));
+  document.getElementById('camSelect').addEventListener('change', (e) => setSelectedCam(e.target.value || null));
+  document.getElementById('dayPicker').addEventListener('change', (e) => e.target.value && setSelectedDay(e.target.value));
+  document.getElementById('todayBtn').addEventListener('click', () => {
+    const today = getTodayLocalISO();
+    document.getElementById('dayPicker').value = today;
+    setSelectedDay(today);
+  });
+
+  async function addDepartementOutline() {
+    try {
+      const r = await fetch('/static/departement-43-haute-loire.geojson');
+      const geo = await r.json();
+
+      if (deptLayer) map.removeLayer(deptLayer);
+
+      deptLayer = L.geoJSON(geo, {
+        interactive: false,
+        style: { color: '#000', weight: 2, opacity: 0.8, fillOpacity: 0.02 }
+      }).addTo(map);
+
+      deptLayer.bringToBack();
+      map.fitBounds(deptLayer.getBounds(), { padding: [10, 10] });
+
+    } catch (e) {
+      console.error("Erreur chargement GeoJSON:", e);
+    }
+  }
+
+  /* -------- boot -------- */
+  (async function boot(){
+    await apiHealth();
+
+    await refreshStatus();
+    startCountdownLoop();
+    setInterval(refreshStatus, 5000);
+
+    await loadCams();
+    await addDepartementOutline();
+
+    const today = getTodayLocalISO();
+    const minDay = isoMinusDays(today, 10);
+    const dp = document.getElementById('dayPicker');
+    dp.min = minDay;
+    dp.max = today;
+    dp.value = today;
+
+    selectedDay = today;
+    document.getElementById('dayLbl').textContent = selectedDay;
+    document.getElementById('podiumDayLbl').textContent = selectedDay;
+
+    document.getElementById('filterCam').textContent = 'ALL';
+    document.getElementById('camTitleLbl').textContent = 'Toutes caméras';
+    document.getElementById('imgModeLbl').textContent = `Mode images: 50 dernières (toutes caméras) • Jour: ${selectedDay}`;
+
+    await initSinceId();
+    await loadLatestImages();
+    await refreshStats();
+
+    pollEvents();
+  })();
+
+  } // end desktop-only JS
+  </script>
+
+</div> <!-- /desktopOnly -->
+
+</body>
+</html>

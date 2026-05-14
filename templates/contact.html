@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Contact — Alexandre Rogues</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+
+    .hero-contact{
+      padding-top: 32px;
+      padding-bottom: 12px;
+    }
+
+    .contact-grid{
+      display:grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 28px;
+      margin-top: 24px;
+      align-items:start;
+    }
+
+    @media (max-width: 900px){
+      .contact-grid{
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .contact-card{
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:20px;
+      box-shadow: var(--shadow);
+      background:#fff;
+    }
+
+    .contact-list{
+      list-style:none;
+      padding:0;
+      margin:0;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      font-size:15px;
+    }
+
+    .contact-list a{
+      font-weight:900;
+      color: rgba(37,99,235,.95);
+      text-decoration:none;
+    }
+
+    .contact-list a:hover{
+      text-decoration:underline;
+    }
+
+    .muted-strong{
+      color:rgba(71,85,105,.95);
+      font-weight:600;
+    }
+
+    .badge-contact{
+      display:inline-block;
+      margin-top:12px;
+      font-size:13px;
+      padding:6px 12px;
+      border-radius:999px;
+      background: rgba(37,99,235,.10);
+      color: rgba(37,99,235,.95);
+      font-weight:900;
+    }
+
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap bar">
+    <a class="brand" href="/">VisionTrafic</a>
+    <nav class="nav">
+      <a href="/">Projet</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/technique">Technique</a>
+      <a class="active" href="/contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="section hero-contact">
+    <h1>Contact</h1>
+    <p class="lede">
+      Discutons d’un projet data, d’un prototype technique ou d’une mise en production propre.
+    </p>
+  </section>
+
+  <section class="section contact-grid">
+
+    <!-- Colonne gauche : Présentation -->
+    <div class="contact-card">
+      <h2>À propos</h2>
+
+      <p>
+        Je suis <strong>Alexandre Rogues</strong>, professionnel du numérique avec un parcours transversal :
+        data, support technique, déploiement d’outils et coordination de projets digitaux.
+      </p>
+
+      <p>
+        Ancien professeur de mathématiques, j’ai évolué vers l’analyse de données et le développement
+        d’outils numériques. J’interviens aujourd’hui sur des sujets mêlant
+        <span class="muted-strong">pipeline data</span>,
+        <span class="muted-strong">automatisation</span>,
+        <span class="muted-strong">visualisation</span>
+        et <span class="muted-strong">mise en production</span>.
+      </p>
+
+      <p>
+        J’apprécie particulièrement les projets concrets :
+        transformer un flux brut (images, données, capteurs, logs) en signal exploitable
+        et en outils utiles pour des équipes.
+      </p>
+
+      <span class="badge-contact">
+        Basé dans la Loire · Disponible
+      </span>
+    </div>
+
+    <!-- Colonne droite : Coordonnées -->
+    <div class="contact-card">
+      <h2>Coordonnées</h2>
+
+      <ul class="contact-list">
+        <li>
+          📧 Email<br/>
+          <a href="mailto:alexandre.rogues@gmail.com">
+            alexandre.rogues@gmail.com
+          </a>
+        </li>
+
+        <li>
+          📱 Téléphone<br/>
+          <a href="tel:+33650146365">
+            +33 6 50 14 63 65
+          </a>
+        </li>
+
+        <li>
+          🌐 Site personnel<br/>
+          <a href="https://alexandre.rogues.fr" target="_blank">
+            alexandre.rogues.fr
+          </a>
+        </li>
+
+        <li>
+          💼 LinkedIn<br/>
+          <a href="https://linkedin.com/in/alexandrerogues" target="_blank">
+            linkedin.com/in/alexandrerogues
+          </a>
+        </li>
+
+        <li>
+          🧑‍💻 GitHub<br/>
+          <a href="https://github.com/Stabadev" target="_blank">
+            github.com/Stabadev
+          </a>
+        </li>
+      </ul>
+
+    </div>
+
+  </section>
+
+  <section class="section">
+    <div class="card softCallout">
+      <h3 style="margin-top:0">Vous avez une idée ou un besoin technique ?</h3>
+      <p class="muted" style="margin-bottom:10px">
+        Écrivez-moi un message avec votre contexte, vos contraintes et votre objectif.
+        Je peux vous aider à cadrer, prototyper et industrialiser.
+      </p>
+      <a class="btn primary" href="mailto:alexandre.rogues@gmail.com">
+        Envoyer un email
+      </a>
+    </div>
+  </section>
+
+  <footer class="footer" style="padding-top:40px; border-top: 1px solid var(--border);">
+    <a class="btn" href="/">Retour au projet</a>
+  </footer>
+
+</main>
+
+</body>
+</html>
